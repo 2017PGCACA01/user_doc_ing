@@ -4,7 +4,7 @@ from app.models.user_model import User
 from sqlalchemy.exc import IntegrityError
 
 def register_user(data):
-    user = User(email=data["email"])
+    user = User(email=data["email"], role=data["role"])
     user.set_password(data["password"])
     db.session.add(user)
     try:
