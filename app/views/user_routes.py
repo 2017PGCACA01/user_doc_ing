@@ -54,4 +54,10 @@ def change_user_role(user_id):
         return {"msg": "Missing role field"}, 400
 
     return update_user_role(user_id, new_role)
-    
+
+@user_bp.route("/", methods=["GET"])
+@jwt_required()
+def list():
+    users = User.query.all()
+    user_list = [{"id": user.id, "email": user.email, "role": user.role} for user in users]
+    return {"users": user_list}, 200

@@ -1,6 +1,7 @@
 import os
 from app.extensions import db
 from app.models.doc_model import Document
+from app.models.ingestion_model import Ingestion
 from flask import current_app, send_from_directory
 
 def save_uploaded_file(file, user_id, title):
@@ -31,10 +32,11 @@ def delete_document(doc_id, user_id):
     if doc.created_by != user_id:
         return {"msg": "Forbidden"}, 403
 
-    # Delete file from disk
     file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], doc.filename)
     if os.path.exists(file_path):
         os.remove(file_path)
+
+    Ingestion.query.filter_by(document_id=doc.id).delete()
 
     db.session.delete(doc)
     db.session.commit()

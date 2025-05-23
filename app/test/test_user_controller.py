@@ -18,7 +18,7 @@ def unique_email():
 def test_register_user_success(app, db):
     with app.app_context():
         email = unique_email()
-        data = {"email": email, "password": "securepass"}
+        data = {"email": email, "password": "securepass", "role": "viewer"}
         res, status = register_user(data)
         assert status == 201
         assert res["msg"] == "User registered successfully"
@@ -27,7 +27,7 @@ def test_register_user_success(app, db):
 
 def test_register_user_unexpected_error(app, db, monkeypatch):
     with app.app_context():
-        data = {"email": unique_email(), "password": "securepass"}
+        data = {"email": unique_email(), "password": "securepass", "role": "viewer"}
         monkeypatch.setattr(db.session, "commit", lambda: (_ for _ in ()).throw(Exception("DB down")))
         res, status = register_user(data)
         assert status == 500
@@ -115,7 +115,7 @@ def test_update_user_role_generic_exception(app, db):
 
 def test_register_user_duplicate_email_mocked(app):
     with app.app_context():
-        data = {"email": "duplicate@example.com", "password": "pass123"}
+        data = {"email": "duplicate@example.com", "password": "pass123", "role": "viewer"}
         mock_err = IntegrityError("statement", "params", "orig")
 
         with patch("app.controllers.user_controller.db.session.commit", side_effect=mock_err):
