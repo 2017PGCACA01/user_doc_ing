@@ -7,6 +7,14 @@ from app.models.ingestion_model import Ingestion
 import requests
 
 def process_document_ingestion(app, doc_id):
+    """
+    Processes the ingestion of a document by its ID.
+    This function reads the document content, sends it to a language model for summarization,
+    and updates the ingestion status in the database.
+    :param app: Flask application instance
+    :param doc_id: ID of the document to be ingested
+    :return: None
+    """
     with app.app_context():
         ingestion = Ingestion.query.filter_by(document_id=doc_id).first()
         doc = Document.query.get(doc_id)
