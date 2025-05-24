@@ -7,6 +7,15 @@ VALID_ROLES = {"viewer", "editor", "admin"}
 EMAIL_REGEX = re.compile(r"^[\w\.-]+@[\w\.-]+\.\w+$")
 
 class User(db.Model):
+    """
+    Represents a user in the system.
+    This model stores user credentials, including email, password hash, and role.
+    Attributes:
+        id (int): Unique identifier for the user.
+        email (str): User's email address, must be unique.
+        password_hash (str): Hashed password for secure storage.
+        role (str): User's role in the system, must be one of 'viewer', 'editor', or 'admin'.
+    """
     __tablename__ = "user"
 
     id = db.Column(db.Integer, primary_key=True)
