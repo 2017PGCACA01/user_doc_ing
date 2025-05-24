@@ -8,6 +8,16 @@ from app.extensions import db
 from app.utils.llm import process_document_ingestion
 
 def trigger_ingestion(doc_id):
+    """
+    Triggers the ingestion process for a document by its ID.
+    This function checks if the document exists, ensures that an ingestion
+    does not already exist for the document, and starts the ingestion process
+    in a separate thread.
+    :param doc_id: ID of the document to be ingested
+    :return: A dictionary with the status of the ingestion process and the document ID,
+             or an error message if the ingestion could not be started.
+    :raises: 404 if the document is not found, 400 if an ingestion already exists,
+    """
     doc = Document.query.get(doc_id)
     if not doc:
         return {"msg": "Document not found"}, 404
@@ -30,16 +40,34 @@ def trigger_ingestion(doc_id):
         return {"msg": "Failed to start ingestion"}, 500
     
 def get_ingestion_status(ing_id):
+    """
+    Retrieves the status of an ingestion by its ID.
+    :param ing_id: ID of the ingestion to check
+    :return: A dictionary with the ingestion status details,
+             or an error message if the ingestion is not found.
+    :raises: 404 if the ingestion is not found
+    """
     ingestion = Ingestion.query.filter_by(id=ing_id).first()
     if not ingestion:
         return {"msg": "No ingestion record found"}, 404
     return ingestion_status_dict(ingestion), 200
 
 def get_ingestion_list():
+    """
+    Retrieves a list of all ingestions.
+    :return: A list of dictionaries containing the status of each ingestion,
+             or an empty list if no ingestions exist.
+    """
     ingestions = Ingestion.query.all()
     return [ingestion_status_dict(ing) for ing in ingestions], 200
 
 def ingestion_status_dict(ing):
+    """
+    Converts an Ingestion object to a dictionary representation.
+    :param ing: An Ingestion object
+    :return: A dictionary with the ingestion details, including ID, document ID,
+             status, timestamps, error message, and summary.
+    """
     return {
         "id": ing.id,
         "document_id": ing.document_id,
