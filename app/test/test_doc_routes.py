@@ -17,9 +17,8 @@ def test_upload_missing_file_or_title(client, app, db):
     db.session.commit()
 
     with app.app_context():
-        token = create_access_token(identity=str(user.id))
+        token = create_access_token(identity=str(user.id), additional_claims={"role": user.role})
 
-    # Missing both
     res = client.post("/api/docs/upload", headers={"Authorization": f"Bearer {token}"})
     assert res.status_code == 400
     assert res.get_json()["msg"] == "Missing file or title"
@@ -31,7 +30,7 @@ def test_upload_success(client, app, db):
     db.session.commit()
 
     with app.app_context():
-        token = create_access_token(identity=str(user.id))
+        token = create_access_token(identity=str(user.id), additional_claims={"role": user.role})
 
     data = {
         "title": "Test Document",
@@ -96,7 +95,7 @@ def test_upload_no_selected_file(client, app, db):
     db.session.commit()
 
     with app.app_context():
-        token = create_access_token(identity=str(user.id))
+        token = create_access_token(identity=str(user.id), additional_claims={"role": user.role})
 
     data = {
         "title": "No File Test",
@@ -109,3 +108,24 @@ def test_upload_no_selected_file(client, app, db):
 
     assert res.status_code == 400
     assert res.get_json()["msg"] == "No selected file"
+
+def test_upload_forbidden_role(client, app, db):
+    user = User(email=unique_email("forbidden"), role="viewer")  # Not allowed
+    user.set_password("password")
+    db.session.add(user)
+    db.session.commit()
+
+    with app.app_context():
+        token = create_access_token(identity=str(user.id), additional_claims={"role": user.role})
+
+    data = {
+        "title": "Unauthorized Upload",
+        "file": (io.BytesIO(b"Not allowed"), "unauthorized.txt")
+    }
+
+    res = client.post("/api/docs/upload", headers={
+        "Authorization": f"Bearer {token}"
+    }, content_type="multipart/form-data", data=data)
+
+    assert res.status_code == 403
+    assert res.get_json()["msg"] == "Forbidden"
