@@ -1,8 +1,8 @@
-"""ingestion db
+"""initial upgrade 
 
-Revision ID: 436e34bd48c3
-Revises: eb5d00f0f28f
-Create Date: 2025-05-23 17:54:34.380436
+Revision ID: 553b04eada62
+Revises: 
+Create Date: 2025-05-24 20:20:44.276070
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '436e34bd48c3'
-down_revision = 'eb5d00f0f28f'
+revision = '553b04eada62'
+down_revision = None
 branch_labels = None
 depends_on = None
 

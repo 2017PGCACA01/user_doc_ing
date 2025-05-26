@@ -6,6 +6,17 @@ from app.models.doc_model import Document
 from app.models.ingestion_model import Ingestion
 import requests
 
+import PyPDF2
+
+def read_pdf(file_path):
+    """Reads and returns text from all pages of a PDF file."""
+    text = ""
+    with open(file_path, 'rb') as file:
+        reader = PyPDF2.PdfReader(file)
+        for page in reader.pages:
+            text += page.extract_text() or ""
+    return text
+
 def process_document_ingestion(app, doc_id):
     """
     Processes the ingestion of a document by its ID.
@@ -28,24 +39,28 @@ def process_document_ingestion(app, doc_id):
 
         try:
             file_path = os.path.join(app.config["UPLOAD_FOLDER"], doc.filename)
-            with open(file_path, "r", encoding="utf-8", errors="replace") as f:
-                content = f.read()
-
-
+            if doc.filename.lower().endswith('.pdf'):
+                content = read_pdf(file_path)
+            else:
+                with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+                    content = f.read()
             prompt = f"Summarize the following document in about 100 words:\n\n{content}. Do not cross the word limit of 100."
-            print(prompt)
+            openrouter_key = "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"
+            model_name = "google/gemini-2.5-flash-preview-05-20"
             res = requests.post(
-                "http://localhost:11434/api/chat",
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": "Bearer " + openrouter_key,
+                },
                 json={
-                    "model": "qwen2.5:0.5b",
+                    "model":model_name,
                     "stream": False,
                     "options": {"num_predict": 2000},
                     "messages": [{"role": "user", "content": prompt}]
                 }
             )
-            print(res)
             res.raise_for_status()
-            summary = res.json()["message"]["content"]
+            summary = res.json()['choices'][0]['message']['content']
             ingestion.status = "done"
             ingestion.completed_at = datetime.utcnow()
             ingestion.summary = str(summary)
